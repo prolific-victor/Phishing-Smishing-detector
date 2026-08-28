@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            width: 320px;
+            margin: 0;
+            padding: 16px;
+            background-color: #0f172a;
+            color: #f8fafc;
+        }
+
+        h2 {
+            margin: 0 0 12px 0;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #3b82f6;
+        }
+
+        .container {
+            background-color: #1e293b;
+            border-radius: 8px;
+            padding: 16px;
+            border: 1px solid #334155;
+        }
+
+        .result-box {
+            display: none;
+            margin-top: 12px;
+            padding: 12px;
+            border-radius: 6px;
+            background-color: rgba(0, 0, 0, 0.2);
+            border-left: 4px solid #3b82f6;
+        }
+
+        .score {
+            font-size: 24px;
+            font-weight: bold;
+            margin: 8px 0;
+        }
+
+        .phishing {
+            border-color: #ef4444;
+        }
+
+        .phishing .score {
+            color: #ef4444;
+        }
+
+        .suspicious {
+            border-color: #f59e0b;
+        }
+
+        .suspicious .score {
+            color: #f59e0b;
+        }
+
+        .safe {
+            border-color: #10b981;
+        }
+
+        .safe .score {
+            color: #10b981;
+        }
+
+        button {
+            background-color: #3b82f6;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 12px;
+            font-weight: 500;
+        }
+
+        button:hover {
+            background-color: #2563eb;
+        }
+
+        input {
+            width: calc(100% - 16px);
+            padding: 8px;
+            margin-top: 8px;
+            border-radius: 4px;
+            border: 1px solid #334155;
+            background-color: #0b1120;
+            color: white;
+        }
+
+        .loader {
+            display: none;
+            text-align: center;
+            margin: 12px 0;
+            color: #94a3b8;
+        }
+
+        .indicators {
+            margin-top: 8px;
+            padding-left: 16px;
+            font-size: 12px;
+            color: #94a3b8;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h2>🛡️ CyberGuard AI</h2>
+        <p style="font-size: 13px; color: #94a3b8; margin: 0 0 12px 0;">Right-click any link on a page to scan it, or
+            paste a URL below.</p>
+
+        <input type="text" id="manualUrl" placeholder="https://example.com" />
+        <button id="scanBtn">Scan URL</button>
+
+        <div id="loader" class="loader">Scanning...</div>
+
+        <div id="resultBox" class="result-box">
+            <div id="riskLevel" style="font-weight: 600;"></div>
+            <div class="score">Score: <span id="riskScore"></span>%</div>
+            <ul class="indicators" id="indicatorsList"></ul>
+            <div id="recommendation"
+                style="font-size: 13px; margin-top: 8px; background: rgba(255,255,255,0.05); padding: 8px; border-radius: 4px;">
+            </div>
+        </div>
+    </div>
+    <script src="popup.js"></script>
+</body>
+
+</html>

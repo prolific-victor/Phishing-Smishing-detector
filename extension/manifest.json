@@ -1,0 +1,25 @@
+{
+  "manifest_version": 3,
+  "name": "CyberGuard AI Phishing Scanner",
+  "version": "1.0",
+  "description": "Right-click any link to scan for phishing threats using AI.",
+  "permissions": [
+    "contextMenus"
+  ],
+  "host_permissions": [
+    "http://127.0.0.1:8000/api/*",
+    "<all_urls>"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "CyberGuard AI"
+  },
+  "icons": {
+    "16": "icon.png",
+    "48": "icon.png",
+    "128": "icon.png"
+  }
+}
