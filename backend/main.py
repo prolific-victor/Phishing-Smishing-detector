@@ -2,7 +2,7 @@ import sys
 import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from fastapi import FastAPI, Depends, HTTPException
+from fastapi import FastAPI, Depends, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from typing import List
@@ -27,12 +27,19 @@ database.init_db()
 
 @app.get("/")
 @app.get("/health")
+@app.get("/api")
+@app.get("/api/")
 @app.get("/api/health")
+@app.get("/api/index.py/health")
+@app.get("/api/index/health")
 def read_root():
     return {"status": "ok", "message": "AI Cybersecurity Assistant API is running"}
 
 @app.post("/scan/url", response_model=models.ScanResponse)
 @app.post("/api/scan/url", response_model=models.ScanResponse)
+@app.post("/api/index.py/scan/url", response_model=models.ScanResponse)
+@app.post("/api/index/scan/url", response_model=models.ScanResponse)
+@app.post("/api/index.py/api/scan/url", response_model=models.ScanResponse)
 def scan_url(request: models.ScanRequest, db: Session = Depends(database.get_db)):
     """Analyze a URL for phishing."""
     url = request.content
@@ -57,6 +64,9 @@ def scan_url(request: models.ScanRequest, db: Session = Depends(database.get_db)
 
 @app.post("/scan/message", response_model=models.ScanResponse)
 @app.post("/api/scan/message", response_model=models.ScanResponse)
+@app.post("/api/index.py/scan/message", response_model=models.ScanResponse)
+@app.post("/api/index/scan/message", response_model=models.ScanResponse)
+@app.post("/api/index.py/api/scan/message", response_model=models.ScanResponse)
 def scan_message(request: models.ScanRequest, db: Session = Depends(database.get_db)):
     """Analyze a text message for phishing intent."""
     message = request.content
@@ -81,6 +91,9 @@ def scan_message(request: models.ScanRequest, db: Session = Depends(database.get
 
 @app.get("/admin/stats", response_model=models.DashboardStats)
 @app.get("/api/admin/stats", response_model=models.DashboardStats)
+@app.get("/api/index.py/admin/stats", response_model=models.DashboardStats)
+@app.get("/api/index/admin/stats", response_model=models.DashboardStats)
+@app.get("/api/index.py/api/admin/stats", response_model=models.DashboardStats)
 def get_admin_stats(db: Session = Depends(database.get_db)):
     """Get statistics for the admin dashboard."""
     try:
