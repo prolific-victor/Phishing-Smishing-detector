@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Cybersecurity Assistant</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="logo">
+                <i class="fas fa-shield-alt"></i>
+                <h2>CyberGuard AI</h2>
+            </div>
+            <nav>
+                <a href="index.html" class="active"><i class="fas fa-comment-dots"></i> Scanner Chat</a>
+                <a href="admin.html"><i class="fas fa-chart-line"></i> Dashboard</a>
+            </nav>
+            <div class="sidebar-footer">
+                <p>Status: <span class="status-indicator online"></span> Active</p>
+            </div>
+        </aside>
+
+        <!-- Main Chat Area -->
+        <main class="chat-container">
+            <header class="chat-header">
+                <div>
+                    <h1>Security Scanner</h1>
+                    <p>Detect phishing URLs and suspicious messages instantly.</p>
+                </div>
+            </header>
+
+            <div class="chat-history" id="chatHistory">
+                <!-- Welcome Message -->
+                <div class="message assistant">
+                    <div class="message-avatar">
+                        <i class="fas fa-robot"></i>
+                    </div>
+                    <div class="message-content">
+                        <p>Hello! I am your AI Cybersecurity Assistant. Send me a URL or a suspicious message, and I'll analyze it for phishing risks.</p>
+                        <div class="suggestion-chips">
+                            <button onclick="fillInput('Check this link http://paypal-login-security.ru')">Try a suspicious link</button>
+                            <button onclick="fillInput('URGENT: Your bank account has been locked. Verify immediately: http://secure-verify.com')">Try a phishing SMS</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Input Area -->
+            <div class="input-container">
+                <form id="chatForm">
+                    <div class="input-wrapper">
+                        <input type="text" id="userInput" placeholder="Paste a link or message here..." autocomplete="off">
+                        <button type="submit" id="sendBtn"><i class="fas fa-paper-plane"></i></button>
+                    </div>
+                </form>
+            </div>
+        </main>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

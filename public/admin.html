@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - AI Cybersecurity Assistant</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+
+<body>
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="logo">
+                <i class="fas fa-shield-alt"></i>
+                <h2>CyberGuard AI</h2>
+            </div>
+            <nav>
+                <a href="index.html"><i class="fas fa-comment-dots"></i> Scanner Chat</a>
+                <a href="admin.html" class="active"><i class="fas fa-chart-line"></i> Dashboard</a>
+            </nav>
+            <div class="sidebar-footer">
+                <p>Status: <span class="status-indicator online"></span> Active</p>
+            </div>
+        </aside>
+
+        <!-- Admin Dashboard Area -->
+        <main class="admin-container">
+            <header class="chat-header" style="padding: 0 0 32px 0; border: none; background: transparent;">
+                <div>
+                    <h1>System Overview</h1>
+                    <p>Real-time statistics of phishing threat detection.</p>
+                </div>
+            </header>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-title">Total Scanned</div>
+                    <div class="stat-value val-total" id="statTotal">...</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-title">Phishing Blocked</div>
+                    <div class="stat-value val-phishing" id="statPhishing">...</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-title">Suspicious Alerts</div>
+                    <div class="stat-value val-susp" id="statSuspicious">...</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-title">Verified Safe</div>
+                    <div class="stat-value val-safe" id="statSafe">...</div>
+                </div>
+            </div>
+
+            <div class="recent-scans">
+                <h3 style="margin-bottom: 16px; font-weight: 600;">Recent Scans</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Time</th>
+                            <th>Type</th>
+                            <th>Content</th>
+                            <th>Classification</th>
+                            <th>Score</th>
+                        </tr>
+                    </thead>
+                    <tbody id="recentScansBody">
+                        <tr>
+                            <td colspan="5" style="text-align:center;">Loading data...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </main>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+
+</html>
