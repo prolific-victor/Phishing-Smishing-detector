@@ -49,7 +49,17 @@ document.addEventListener("DOMContentLoaded", () => {
                     body: JSON.stringify({ content: payload })
                 });
 
-                if (!response.ok) throw new Error("API Request Failed");
+                if (!response.ok) {
+                    let errDetail = "";
+                    try {
+                        const errJson = await response.json();
+                        errDetail = errJson.detail || JSON.stringify(errJson);
+                    } catch (_) {
+                        errDetail = await response.text();
+                    }
+                    console.error("API response error:", response.status, errDetail);
+                    throw new Error(`HTTP ${response.status} - ${errDetail || "Request failed"}`);
+                }
 
                 const result = await response.json();
 
@@ -57,9 +67,9 @@ document.addEventListener("DOMContentLoaded", () => {
                 removeMessage(loadingId);
                 addBotResult(result);
             } catch (error) {
-                console.error("Error:", error);
+                console.error("Scan Error:", error);
                 removeMessage(loadingId);
-                addMessage("Sorry, I couldn't reach the detection server. Is it running?", "assistant");
+                addMessage(`Sorry, could not complete scan (${error.message}). Please check the server logs.`, "assistant");
             } finally {
                 sendBtn.disabled = false;
                 userInput.focus();
