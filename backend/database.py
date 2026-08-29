@@ -1,16 +1,22 @@
+import os
 from sqlalchemy import create_engine, Column, Integer, String, Float, DateTime
 from sqlalchemy.orm import declarative_base, sessionmaker
 from datetime import datetime
 
-import os
+DATABASE_URL = os.environ.get("DATABASE_URL")
+if not DATABASE_URL:
+    # Use /tmp for serverless environments (Vercel, AWS Lambda) or fallback to local
+    if os.environ.get("VERCEL") or os.environ.get("AWS_LAMBDA_FUNCTION_NAME") or not os.access(".", os.W_OK):
+        DATABASE_URL = "sqlite:////tmp/cyber_assistant.db"
+    else:
+        DATABASE_URL = "sqlite:///./cyber_assistant.db"
 
-if os.environ.get("VERCEL"):
-    DATABASE_URL = "sqlite:////tmp/cyber_assistant.db"
-else:
-    DATABASE_URL = os.environ.get("DATABASE_URL", "sqlite:///./cyber_assistant.db")
-
-engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+try:
+    engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
+    SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+except Exception:
+    engine = create_engine("sqlite:///:memory:", connect_args={"check_same_thread": False})
+    SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 Base = declarative_base()
 
@@ -25,11 +31,17 @@ class ScanResult(Base):
     timestamp = Column(DateTime, default=datetime.utcnow)
 
 def init_db():
-    Base.metadata.create_all(bind=engine)
+    try:
+        Base.metadata.create_all(bind=engine)
+    except Exception as e:
+        print(f"Warning: Database init error: {e}")
 
 def get_db():
     db = SessionLocal()
     try:
         yield db
     finally:
-        db.close()
+        try:
+            db.close()
+        except Exception:
+            pass

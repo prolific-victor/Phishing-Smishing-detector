@@ -45,17 +45,21 @@ def analyze_url(url: str):
     if features[7] == 0: indicators.append("Unsecured connection (HTTP instead of HTTPS)")
     if features[1] > 2: indicators.append("Suspicious subdomain structure")
     
-    risk_score = 0.0
+    risk_score = None
     classification = "Safe"
     
     if os.path.exists(MODEL_PATH):
-        with open(MODEL_PATH, "rb") as f:
-            model = pickle.load(f)
+        try:
+            with open(MODEL_PATH, "rb") as f:
+                model = pickle.load(f)
+            probability = model.predict_proba([features])[0][1] # Probability of class 1 (Phishing)
+            risk_score = min(round(probability * 100, 1), 100.0)
+        except Exception as e:
+            print(f"Warning: ML model predict error ({e}), falling back to heuristic rules")
+            risk_score = None
             
-        probability = model.predict_proba([features])[0][1] # Probability of class 1 (Phishing)
-        risk_score = min(round(probability * 100, 1), 100.0)
-    else:
-        # Fallback to rule-based logic if model isn't trained yet
+    if risk_score is None:
+        # Fallback to rule-based logic
         score = 0
         if features[3]: score += 20
         if features[5]: score += 30

@@ -26,19 +26,24 @@ def analyze_message(message: str):
     if urls:
         indicators.append(f"Contains {len(urls)} link(s)")
         
-    risk_score = 0.0
+    risk_score = None
     classification = "Safe"
     
     if os.path.exists(MODEL_PATH) and os.path.exists(VECTORIZER_PATH):
-        with open(VECTORIZER_PATH, "rb") as f:
-            vectorizer = pickle.load(f)
-        with open(MODEL_PATH, "rb") as f:
-            model = pickle.load(f)
+        try:
+            with open(VECTORIZER_PATH, "rb") as f:
+                vectorizer = pickle.load(f)
+            with open(MODEL_PATH, "rb") as f:
+                model = pickle.load(f)
+                
+            features = vectorizer.transform([message])
+            probability = model.predict_proba(features)[0][1]
+            risk_score = min(round(probability * 100, 1), 100.0)
+        except Exception as e:
+            print(f"Warning: NLP model predict error ({e}), falling back to heuristic rules")
+            risk_score = None
             
-        features = vectorizer.transform([message])
-        probability = model.predict_proba(features)[0][1]
-        risk_score = min(round(probability * 100, 1), 100.0)
-    else:
+    if risk_score is None:
         # Fallback to rule-based logic
         score = 0
         if "urgent" in msg_lower or "immediately" in msg_lower: score += 30
