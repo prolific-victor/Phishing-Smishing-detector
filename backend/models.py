@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import Optional
+from typing import Optional, Any
 from datetime import datetime
 
 class ScanRequest(BaseModel):
@@ -10,6 +10,7 @@ class ScanResponse(BaseModel):
     risk_level: str # "Safe", "Suspicious", "Phishing"
     indicators: list[str]
     recommendation: str
+    live_reputation: Optional[dict[str, Any]] = None
 
 class ScanResultDB(BaseModel):
     id: int
@@ -17,6 +18,7 @@ class ScanResultDB(BaseModel):
     content: str
     classification: str
     risk_score: float
+    result_details: Optional[str] = None
     timestamp: datetime
 
     class Config:

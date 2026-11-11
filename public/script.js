@@ -179,7 +179,97 @@ function escapeHTML(str) {
 }
 
 // Admin Dashboard Functions
+let historyDeletionInFlight = false;
+
+function showSavedScan(scan) {
+    const dialog = document.getElementById('scanDetailDialog');
+    const body = document.getElementById('scanDetailBody');
+    if (!dialog || !body) return;
+
+    let details = null;
+    try {
+        details = scan.result_details ? JSON.parse(scan.result_details) : null;
+    } catch (error) {
+        console.warn('Could not read saved scan details:', error);
+    }
+
+    const date = new Date(scan.timestamp);
+    const when = Number.isNaN(date.getTime()) ? 'Unknown time' : date.toLocaleString();
+    const classification = String(scan.classification || details?.risk_level || 'Unknown');
+    const score = scan.risk_score ?? details?.risk_score ?? '—';
+    const indicators = Array.isArray(details?.indicators) ? details.indicators : [];
+    const indicatorsHtml = indicators.length
+        ? `<section><h3>Detected indicators</h3><ul>${indicators.map(item => `<li>${escapeHTML(String(item))}</li>`).join('')}</ul></section>`
+        : '';
+    const recommendationHtml = details?.recommendation
+        ? `<section class="scan-detail-recommendation"><h3>Recommendation</h3><p>${escapeHTML(String(details.recommendation))}</p></section>`
+        : '';
+    const reputation = details?.live_reputation;
+    const reputationHtml = reputation?.status
+        ? `<p class="scan-detail-meta">Live reputation: ${escapeHTML(String(reputation.status).replaceAll('_', ' '))}</p>`
+        : '';
+    const archivedNotice = details
+        ? ''
+        : '<p class="scan-detail-note">This scan was saved before detailed result history was enabled. Its original content, classification, and score are available; indicators and recommendation were not stored.</p>';
+
+    body.innerHTML = `
+        <p class="scan-detail-meta">${escapeHTML(when)} · ${escapeHTML(String(scan.scan_type || 'scan').toUpperCase())}</p>
+        <p><strong>${escapeHTML(classification)} · ${escapeHTML(String(score))}% risk</strong></p>
+        <section><h3>Scanned content</h3><div class="scan-detail-content">${escapeHTML(String(scan.content || ''))}</div></section>
+        ${indicatorsHtml}${recommendationHtml}${reputationHtml}${archivedNotice}
+    `;
+    if (!dialog.open) dialog.showModal();
+}
+
+function setupScanDetailDialog() {
+    const dialog = document.getElementById('scanDetailDialog');
+    const closeButton = document.getElementById('closeScanDetail');
+    if (!dialog || !closeButton) return;
+    closeButton.addEventListener('click', () => dialog.close());
+    dialog.addEventListener('click', event => {
+        if (event.target === dialog) dialog.close();
+    });
+}
+
+async function deleteScanHistory(scanId = null) {
+    if (historyDeletionInFlight) return;
+    const clearAll = scanId === null;
+    const scanCount = Number(document.getElementById('clearScanHistory')?.dataset.scanCount || 0);
+    const prompt = clearAll
+        ? `Permanently delete all ${scanCount} saved scan${scanCount === 1 ? '' : 's'}?`
+        : 'Permanently delete this saved scan?';
+    if (!window.confirm(prompt)) return;
+
+    historyDeletionInFlight = true;
+    const clearButton = document.getElementById('clearScanHistory');
+    if (clearButton) clearButton.disabled = true;
+    try {
+        const url = scanId === null
+            ? `${API_BASE}/admin/history`
+            : `${API_BASE}/admin/history?scan_id=${encodeURIComponent(scanId)}`;
+        const response = await fetch(url, { method: 'DELETE' });
+        const payload = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(payload.detail || `Delete failed (HTTP ${response.status})`);
+        await loadAdminStats();
+    } catch (error) {
+        console.error('Failed to delete scan history:', error);
+        window.alert(error.message || 'Could not delete scan history. Check that the backend is running.');
+    } finally {
+        historyDeletionInFlight = false;
+        if (clearButton) clearButton.disabled = false;
+        loadAdminStats();
+    }
+}
+
+let adminStatsRequestInFlight = false;
+let adminStatsRefreshPending = false;
+
 async function loadAdminStats() {
+    if (adminStatsRequestInFlight) {
+        adminStatsRefreshPending = true;
+        return;
+    }
+    adminStatsRequestInFlight = true;
     try {
         const response = await fetch(`${API_BASE}/admin/stats`);
         const stats = await response.json();
@@ -189,15 +279,32 @@ async function loadAdminStats() {
         document.getElementById('statSuspicious').innerText = stats.suspicious_detected;
         document.getElementById('statSafe').innerText = stats.safe_detected;
 
+        const clearButton = document.getElementById('clearScanHistory');
+        if (clearButton) {
+            clearButton.dataset.scanCount = String(stats.total_scanned);
+            clearButton.disabled = stats.total_scanned === 0 || historyDeletionInFlight;
+        }
+
         const tableBody = document.getElementById('recentScansBody');
         tableBody.innerHTML = '';
 
         stats.recent_scans.forEach(scan => {
             const tr = document.createElement('tr');
+            tr.className = 'scan-history-row';
+            tr.tabIndex = 0;
+            tr.setAttribute('role', 'button');
 
             const date = new Date(scan.timestamp).toLocaleString();
             const riskClass = scan.classification.toLowerCase();
             const truncatedContent = scan.content.length > 50 ? scan.content.substring(0, 50) + '...' : scan.content;
+            tr.setAttribute('aria-label', `Load saved ${String(scan.scan_type || 'scan')} result: ${truncatedContent}`);
+            tr.addEventListener('click', () => showSavedScan(scan));
+            tr.addEventListener('keydown', event => {
+                if (event.key === 'Enter' || event.key === ' ') {
+                    event.preventDefault();
+                    showSavedScan(scan);
+                }
+            });
 
             tr.innerHTML = `
                 <td>${date}</td>
@@ -205,17 +312,40 @@ async function loadAdminStats() {
                 <td><code style="background:rgba(0,0,0,0.3); padding:2px 6px; border-radius:4px;">${escapeHTML(truncatedContent)}</code></td>
                 <td><span class="badge ${riskClass}">${scan.classification}</span></td>
                 <td><strong>${scan.risk_score}%</strong></td>
+                <td class="scan-actions">
+                    <button type="button" class="view-scan-result">View result</button>
+                    <button type="button" class="delete-scan-result">Delete</button>
+                </td>
             `;
+            tr.querySelector('.view-scan-result').addEventListener('click', event => {
+                event.stopPropagation();
+                showSavedScan(scan);
+            });
+            tr.querySelector('.delete-scan-result').addEventListener('click', event => {
+                event.stopPropagation();
+                deleteScanHistory(scan.id);
+            });
             tableBody.appendChild(tr);
         });
 
     } catch (error) {
         console.error("Failed to load admin stats:", error);
+    } finally {
+        adminStatsRequestInFlight = false;
+        if (adminStatsRefreshPending) {
+            adminStatsRefreshPending = false;
+            loadAdminStats();
+        }
     }
 }
 
-if (window.location.pathname.includes('admin.html')) {
-    document.addEventListener("DOMContentLoaded", loadAdminStats);
-    // Refresh stats every 10 seconds
+document.addEventListener("DOMContentLoaded", () => {
+    // Detect the dashboard by its DOM so it also works at deployment aliases
+    // such as /admin, where the browser URL does not contain "admin.html".
+    if (!document.getElementById('recentScansBody')) return;
+    setupScanDetailDialog();
+    document.getElementById('clearScanHistory')?.addEventListener('click', () => deleteScanHistory());
+    loadAdminStats();
+    // Refresh stats every 10 seconds.
     setInterval(loadAdminStats, 10000);
-}
+});

@@ -417,3 +417,63 @@ td {
 .badge.phishing { background-color: rgba(239, 68, 68, 0.2); color: var(--danger); }
 .badge.suspicious { background-color: rgba(245, 158, 11, 0.2); color: var(--warning); }
 .badge.safe { background-color: rgba(16, 185, 129, 0.2); color: var(--success); }
+
+.dashboard-message {
+    padding: 28px 16px;
+    text-align: center;
+    color: var(--text-muted);
+}
+
+.dashboard-error { color: #fca5a5; }
+
+.scan-history-row { cursor: pointer; }
+.scan-history-row:hover, .scan-history-row:focus { background: rgba(59, 130, 246, 0.12); outline: none; }
+.scan-history-row:focus-visible { box-shadow: inset 0 0 0 2px var(--primary); }
+.history-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 16px; }
+.history-heading h3 { font-weight: 600; }
+.clear-history-button, .delete-scan-result { border: 1px solid rgba(239, 68, 68, 0.55); border-radius: 6px; background: rgba(239, 68, 68, 0.12); color: #fecaca; padding: 7px 10px; cursor: pointer; white-space: nowrap; }
+.clear-history-button:hover:not(:disabled), .delete-scan-result:hover { background: rgba(239, 68, 68, 0.3); }
+.clear-history-button:disabled { opacity: 0.45; cursor: not-allowed; }
+.scan-actions { white-space: nowrap; }
+.scan-actions button + button { margin-left: 6px; }
+.view-scan-result { border: 1px solid var(--primary); border-radius: 6px; background: rgba(59, 130, 246, 0.14); color: #bfdbfe; padding: 7px 10px; cursor: pointer; white-space: nowrap; }
+.view-scan-result:hover, .view-scan-result:focus-visible { background: var(--primary); color: white; outline: none; }
+.scan-detail-dialog {
+    width: min(620px, calc(100vw - 32px)); max-height: min(80vh, 720px); margin: auto; padding: 24px;
+    border: 1px solid var(--border); border-radius: 16px; background: var(--bg-panel); color: var(--text-main);
+    box-shadow: 0 24px 70px rgba(0, 0, 0, 0.55);
+}
+.scan-detail-dialog::backdrop { background: rgba(2, 6, 23, 0.78); }
+.scan-detail-header { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 20px; }
+.scan-detail-header h2 { font-size: 20px; }
+.scan-detail-close { border: 0; background: transparent; color: var(--text-muted); font-size: 28px; cursor: pointer; line-height: 1; }
+.scan-detail-close:hover { color: var(--text-main); }
+.scan-detail-body { display: grid; gap: 14px; overflow-wrap: anywhere; }
+.scan-detail-meta { color: var(--text-muted); font-size: 13px; }
+.scan-detail-content, .scan-detail-recommendation { padding: 14px; border: 1px solid var(--border); border-radius: 10px; background: rgba(0, 0, 0, 0.18); white-space: pre-wrap; }
+.scan-detail-body h3 { font-size: 14px; margin-bottom: 8px; }
+.scan-detail-body ul { padding-left: 20px; color: var(--text-muted); }
+.scan-detail-note { color: var(--text-muted); font-size: 13px; }
+
+@media (max-width: 900px) {
+    .stats-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+    .admin-container { padding: 22px; }
+    .recent-scans { overflow-x: auto; }
+    .recent-scans table { min-width: 800px; }
+}
+
+@media (max-width: 560px) {
+    body { height: auto; min-height: 100vh; align-items: flex-start; }
+    .app-container { height: 100vh; min-height: 100vh; border-radius: 0; }
+    .sidebar { width: 76px; padding: 16px 8px; }
+    .sidebar .logo { justify-content: center; margin-bottom: 24px; }
+    .sidebar .logo h2, .sidebar nav a { font-size: 0; }
+    .sidebar nav a { justify-content: center; padding: 14px 8px; }
+    .sidebar nav a i { font-size: 18px; }
+    .sidebar-footer { display: none; }
+    .admin-container { padding: 16px; }
+    .stats-grid { gap: 10px; margin-bottom: 24px; }
+    .stat-card { padding: 14px; }
+    .stat-title { font-size: 12px; }
+    .stat-value { font-size: 25px; }
+}

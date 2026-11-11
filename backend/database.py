@@ -1,5 +1,5 @@
 import os
-from sqlalchemy import create_engine, Column, Integer, String, Float, DateTime
+from sqlalchemy import create_engine, Column, Integer, String, Float, DateTime, Text, inspect, text
 from sqlalchemy.orm import declarative_base, sessionmaker
 from datetime import datetime
 
@@ -28,11 +28,16 @@ class ScanResult(Base):
     content = Column(String) # The URL or the message text
     classification = Column(String) # "Safe", "Suspicious", "Phishing"
     risk_score = Column(Float)
+    result_details = Column(Text, nullable=True)
     timestamp = Column(DateTime, default=datetime.utcnow)
 
 def init_db():
     try:
         Base.metadata.create_all(bind=engine)
+        columns = {column["name"] for column in inspect(engine).get_columns("scan_results")}
+        if "result_details" not in columns:
+            with engine.begin() as connection:
+                connection.execute(text("ALTER TABLE scan_results ADD COLUMN result_details TEXT"))
     except Exception as e:
         print(f"Warning: Database init error: {e}")
 

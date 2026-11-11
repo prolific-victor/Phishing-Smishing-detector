@@ -10,6 +10,8 @@ if root_dir not in sys.path:
 
 from backend import database
 
+database.init_db()
+
 class handler(BaseHTTPRequestHandler):
     def do_OPTIONS(self):
         self.send_response(200)
@@ -37,6 +39,7 @@ class handler(BaseHTTPRequestHandler):
                     "content": item.content,
                     "classification": item.classification,
                     "risk_score": item.risk_score,
+                    "result_details": item.result_details,
                     "timestamp": item.timestamp.isoformat() if item.timestamp else ""
                 })
                 

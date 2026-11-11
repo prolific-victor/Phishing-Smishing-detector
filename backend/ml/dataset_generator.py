@@ -1,5 +1,4 @@
 import pandas as pd
-import random
 import os
 
 def generate_url_dataset(filepath):
@@ -29,19 +28,10 @@ def generate_url_dataset(filepath):
         "http://support-google.com.user-verify.ru/login"
     ]
     
-    # Expand dataset
-    data = []
-    for _ in range(200):
-        url = random.choice(legit_urls)
-        # 0 = legit
-        data.append({"url": url, "label": 0})
-        
-    for _ in range(200):
-        url = random.choice(phish_urls)
-        # 1 = phishing
-        data.append({"url": url, "label": 1})
-        
+    data = ([{"url": url, "label": 0} for url in legit_urls]
+            + [{"url": url, "label": 1} for url in phish_urls])
     df = pd.DataFrame(data)
+    df = df.drop_duplicates(subset=["url", "label"]).reset_index(drop=True)
     df.to_csv(filepath, index=False)
     print(f"URL dataset created at {filepath} with {len(df)} samples.")
 
@@ -74,16 +64,10 @@ def generate_message_dataset(filepath):
         "Bank of America: We noticed suspicious activity. Verify your identity: http://bofa-verify-identity.com"
     ]
     
-    data = []
-    for _ in range(200):
-        msg = random.choice(legit_msgs)
-        data.append({"text": msg, "label": 0})
-        
-    for _ in range(200):
-        msg = random.choice(phish_msgs)
-        data.append({"text": msg, "label": 1})
-        
+    data = ([{"text": msg, "label": 0} for msg in legit_msgs]
+            + [{"text": msg, "label": 1} for msg in phish_msgs])
     df = pd.DataFrame(data)
+    df = df.drop_duplicates(subset=["text", "label"]).reset_index(drop=True)
     df.to_csv(filepath, index=False)
     print(f"Message dataset created at {filepath} with {len(df)} samples.")
 

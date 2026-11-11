@@ -11,6 +11,8 @@ if root_dir not in sys.path:
 import backend.ml.message_analyzer as message_analyzer
 from backend import database
 
+database.init_db()
+
 class handler(BaseHTTPRequestHandler):
     def do_OPTIONS(self):
         self.send_response(200)
@@ -37,7 +39,8 @@ class handler(BaseHTTPRequestHandler):
                     scan_type="message",
                     content=message,
                     classification=result["risk_level"],
-                    risk_score=result["risk_score"]
+                    risk_score=result["risk_score"],
+                    result_details=json.dumps(result, ensure_ascii=False)
                 )
                 db.add(db_record)
                 db.commit()

@@ -1,17 +1,22 @@
 import sys
 import os
+import json
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from fastapi import FastAPI, Depends, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
-from typing import List
+from typing import List, Optional
 
 from backend import database, models
+from backend.reputation import check_url
 import backend.ml.url_analyzer as url_analyzer
 import backend.ml.message_analyzer as message_analyzer
 
 app = FastAPI(title="AI Cybersecurity Assistant API")
+frontend_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "frontend")
 
 # Setup CORS
 app.add_middleware(
@@ -25,7 +30,6 @@ app.add_middleware(
 # Initialize Database
 database.init_db()
 
-@app.get("/")
 @app.get("/health")
 @app.get("/api")
 @app.get("/api/")
@@ -34,6 +38,10 @@ database.init_db()
 @app.get("/api/index/health")
 def read_root():
     return {"status": "ok", "message": "AI Cybersecurity Assistant API is running"}
+
+@app.get("/", include_in_schema=False)
+def frontend_home():
+    return FileResponse(os.path.join(frontend_dir, "index.html"))
 
 @app.post("/scan/url", response_model=models.ScanResponse)
 @app.post("/api/scan/url", response_model=models.ScanResponse)
@@ -46,6 +54,15 @@ def scan_url(request: models.ScanRequest, db: Session = Depends(database.get_db)
     
     # Analyze the URL using the ML model
     result = url_analyzer.analyze_url(url)
+    reputation = check_url(url)
+    result["live_reputation"] = reputation
+    if reputation["status"] == "threat_found":
+        result["risk_score"] = 100.0
+        result["risk_level"] = "Phishing"
+        result["indicators"].append("Google Safe Browsing reports this URL as potentially unsafe.")
+        result["recommendation"] = "Avoid opening this link or entering information. Google Safe Browsing reported a threat; review the provider advisory for details."
+    elif reputation["status"] == "no_threat_found":
+        result["indicators"].append("No threat was listed by Google Safe Browsing at scan time; this does not prove the URL is safe.")
     
     # Store result in database
     try:
@@ -53,7 +70,8 @@ def scan_url(request: models.ScanRequest, db: Session = Depends(database.get_db)
             scan_type="url",
             content=url,
             classification=result["risk_level"],
-            risk_score=result["risk_score"]
+            risk_score=result["risk_score"],
+            result_details=json.dumps(result, ensure_ascii=False)
         )
         db.add(db_record)
         db.commit()
@@ -80,7 +98,8 @@ def scan_message(request: models.ScanRequest, db: Session = Depends(database.get
             scan_type="message",
             content=message,
             classification=result["risk_level"],
-            risk_score=result["risk_score"]
+            risk_score=result["risk_score"],
+            result_details=json.dumps(result, ensure_ascii=False)
         )
         db.add(db_record)
         db.commit()
@@ -119,6 +138,25 @@ def get_admin_stats(db: Session = Depends(database.get_db)):
             "safe_detected": 0,
             "recent_scans": []
         }
+
+@app.delete("/admin/history")
+@app.delete("/api/admin/history")
+def delete_scan_history(scan_id: Optional[int] = None, db: Session = Depends(database.get_db)):
+    """Delete one saved scan when scan_id is provided, or clear all history."""
+    if scan_id is not None:
+        scan = db.query(database.ScanResult).filter(database.ScanResult.id == scan_id).first()
+        if scan is None:
+            raise HTTPException(status_code=404, detail="Scan history entry not found")
+        db.delete(scan)
+        deleted = 1
+    else:
+        deleted = db.query(database.ScanResult).delete(synchronize_session=False)
+    db.commit()
+    return {"deleted": deleted}
+
+# Serve the web app from the same origin as the API so browser requests to
+# /api/... work when running locally.
+app.mount("/", StaticFiles(directory=frontend_dir, html=True), name="frontend")
 
 if __name__ == "__main__":
     import uvicorn

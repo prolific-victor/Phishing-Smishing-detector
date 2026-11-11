@@ -5,7 +5,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard - AI Cybersecurity Assistant</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <link rel="stylesheet" href="style.css?v=history-delete-4">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
@@ -56,7 +57,10 @@
             </div>
 
             <div class="recent-scans">
-                <h3 style="margin-bottom: 16px; font-weight: 600;">Recent Scans</h3>
+                <div class="history-heading">
+                    <h3>Recent Scans</h3>
+                    <button type="button" id="clearScanHistory" class="clear-history-button" disabled>Clear history</button>
+                </div>
                 <table>
                     <thead>
                         <tr>
@@ -65,11 +69,12 @@
                             <th>Content</th>
                             <th>Classification</th>
                             <th>Score</th>
+                            <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody id="recentScansBody">
                         <tr>
-                            <td colspan="5" style="text-align:center;">Loading data...</td>
+                            <td colspan="6" style="text-align:center;">Loading data...</td>
                         </tr>
                     </tbody>
                 </table>
@@ -77,7 +82,15 @@
         </main>
     </div>
 
-    <script src="script.js"></script>
+    <dialog id="scanDetailDialog" class="scan-detail-dialog" aria-labelledby="scanDetailTitle">
+        <div class="scan-detail-header">
+            <h2 id="scanDetailTitle">Saved scan result</h2>
+            <button type="button" class="scan-detail-close" id="closeScanDetail" aria-label="Close scan details">&times;</button>
+        </div>
+        <div id="scanDetailBody" class="scan-detail-body"></div>
+    </dialog>
+
+    <script src="script.js?v=history-delete-4"></script>
 </body>
 
 </html>
